@@ -1,12 +1,12 @@
 package com.example.varosok;
 
-public class Cities {
+public class City {
     private int id;
     private String name;
     private String country;
     private int population;
 
-    public Cities(int id, String name, String country, int population) {
+    public City(int id, String name, String country, int population) {
         this.id = id;
         this.name = name;
         this.country = country;
