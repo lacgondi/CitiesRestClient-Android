@@ -1,6 +1,7 @@
 package com.example.varosok;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -9,7 +10,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 
@@ -26,35 +26,7 @@ public class AddActivity extends AppCompatActivity {
         setContentView(R.layout.activity_insert);
         init();
         insert.setOnClickListener(view -> {
-            String nameContent =String.valueOf(name.getText());
-            String countryContent =String.valueOf(country.getText());
-            int populationContent =Integer.parseInt(String.valueOf(population.getText()));
-            if(nameContent.isEmpty()){
-                Toast.makeText(AddActivity.this, "Töltsd ki a név mezőt",
-                        Toast.LENGTH_SHORT).show();
-            }
-            if(countryContent.isEmpty()){
-                Toast.makeText(AddActivity.this, "Töltsd ki az ország mezőt",
-                        Toast.LENGTH_SHORT).show();
-            }
-            City city = new City(0,nameContent,countryContent,populationContent);
-            Gson converter = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-            String json = converter.toJson(city);
-            Response response = null;
-            try {
-                response = RequestHandler.post(MainActivity.URL, json);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            assert response != null;
-            if (response.getResponseCode() == 201) {
-                Toast.makeText(AddActivity.this, "Város hozzáadva",
-                        Toast.LENGTH_SHORT).show();
-            } else {
-                String content = response.getContent();
-                Toast.makeText(AddActivity.this, content,
-                        Toast.LENGTH_SHORT).show();
-            }
+            addCity();
         });
         back.setOnClickListener(view -> {
             Intent intent = new Intent(AddActivity.this, MainActivity.class);
@@ -69,5 +41,89 @@ public class AddActivity extends AppCompatActivity {
         population = findViewById(R.id.addPopulation);
         insert = findViewById(R.id.buttonInsert);
         back = findViewById(R.id.buttonBackFromInsert);
+    }
+
+    private void addCity() {
+        String nameContent = name.getText().toString();
+        String countryContent = country.getText().toString();
+        String populationContent = population.getText().toString();
+
+        boolean valid = validation();
+
+        if (valid){
+            Toast.makeText(this,
+                    "Minden mezőt ki kell tölteni", Toast.LENGTH_SHORT).show();
+            return;
+        }else{
+            Toast.makeText(this,
+                    "Város hozzáadva", Toast.LENGTH_SHORT).show();
+        }
+
+        int populationToInt = Integer.parseInt(populationContent);
+        City city = new City(0,nameContent,countryContent,populationToInt);
+        Gson jsonConverter = new Gson();
+        RequestTask task = new RequestTask(MainActivity.URL, "POST",
+                jsonConverter.toJson(city));
+        task.execute();
+    }
+
+    private boolean validation() {
+        if (name.getText().toString().isEmpty() ||
+                country.getText().toString().isEmpty() || population.getText().toString().isEmpty())
+            return true;
+        else
+            return false;
+    }
+
+    private class RequestTask extends AsyncTask<Void, Void, Response> {
+        private String requestUrl;
+        private String requestMethod;
+        private String requestBody;
+
+        public RequestTask(String requestUrl) {
+            this.requestUrl = requestUrl;
+            this.requestMethod = "GET";
+        }
+
+        public RequestTask(String requestUrl, String requestMethod) {
+            this.requestUrl = requestUrl;
+            this.requestMethod = requestMethod;
+        }
+
+        public RequestTask(String requestUrl, String requestMethod, String requestBody) {
+            this.requestUrl = requestUrl;
+            this.requestMethod = requestMethod;
+            this.requestBody = requestBody;
+        }
+
+        @Override
+        protected Response doInBackground(Void... voids) {
+            Response response = null;
+            try {
+                switch (requestMethod) {
+                    case "GET":
+                        response = RequestHandler.get(MainActivity.URL);
+                        break;
+                    case "POST":
+                        response = RequestHandler.post(requestUrl, requestBody);
+                        break;
+                    case "PUT":
+                        response = RequestHandler.put(requestUrl, requestBody);
+                        break;
+                    case "DELETE":
+                        response = RequestHandler.delete(requestUrl);
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
     }
 }

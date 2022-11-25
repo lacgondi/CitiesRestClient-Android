@@ -7,6 +7,8 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final String URL = "https://retoolapi.dev/If7jC8/data";
@@ -19,15 +21,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
-        add.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, AddActivity.class);
-            startActivity(intent);
-            finish();
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, AddActivity.class);
+                MainActivity.this.startActivity(intent);
+            }
         });
-        list.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, ListActivity.class);
-            startActivity(intent);
-            finish();
+        list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, ListActivity.class);
+                MainActivity.this.startActivity(intent);
+                finish();
+            }
         });
     }
 
